@@ -34,7 +34,9 @@ import org.eclipse.m2e.core.internal.index.filter.FilteredIndex;
 import org.eclipse.m2e.core.internal.lifecyclemapping.discovery.IMavenDiscovery;
 import org.eclipse.m2e.core.ui.internal.console.MavenConsoleImpl;
 import org.eclipse.m2e.core.ui.internal.project.MavenUpdateConfigurationChangeListener;
+import org.eclipse.m2e.core.ui.internal.search.util.CompositeSearchEngine;
 import org.eclipse.m2e.core.ui.internal.search.util.IndexSearchEngine;
+import org.eclipse.m2e.core.ui.internal.search.util.MavenCentralSearchEngine;
 import org.eclipse.m2e.core.ui.internal.search.util.SearchEngine;
 import org.eclipse.m2e.core.ui.internal.wizards.IMavenDiscoveryUI;
 
@@ -123,7 +125,9 @@ public class M2EUIPluginActivator extends AbstractUIPlugin {
   }
 
   public SearchEngine getSearchEngine(IProject project) throws CoreException {
-    return new IndexSearchEngine(new FilteredIndex(project, MavenPlugin.getIndexManager().getIndex(project)));
+    IndexSearchEngine indexSearchEngine = new IndexSearchEngine(
+        new FilteredIndex(project, MavenPlugin.getIndexManager().getIndex(project)));
+    return new CompositeSearchEngine(indexSearchEngine, new MavenCentralSearchEngine());
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})

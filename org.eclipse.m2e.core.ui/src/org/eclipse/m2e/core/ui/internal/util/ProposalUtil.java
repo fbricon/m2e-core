@@ -29,6 +29,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.fieldassist.ContentAssistCommandAdapter;
 
 import org.apache.lucene.queryParser.QueryParser;
@@ -48,6 +49,7 @@ import org.eclipse.m2e.core.ui.internal.search.util.SearchEngine;
  * 
  * @author rgould
  */
+@SuppressWarnings("synthetic-access")
 public class ProposalUtil {
   private static final Logger log = LoggerFactory.getLogger(ProposalUtil.class);
 
@@ -80,14 +82,15 @@ public class ProposalUtil {
   }
 
   public static void addCompletionProposal(final Control control, final Searcher searcher) {
-    FieldDecoration fieldDecoration = FieldDecorationRegistry.getDefault().getFieldDecoration(
-        FieldDecorationRegistry.DEC_CONTENT_PROPOSAL);
+    FieldDecoration fieldDecoration = FieldDecorationRegistry.getDefault()
+        .getFieldDecoration(FieldDecorationRegistry.DEC_CONTENT_PROPOSAL);
     ControlDecoration decoration = new ControlDecoration(control, SWT.LEFT | SWT.TOP);
     decoration.setShowOnlyOnFocus(true);
     decoration.setDescriptionText(fieldDecoration.getDescription());
     decoration.setImage(fieldDecoration.getImage());
 
     IContentProposalProvider proposalProvider = new IContentProposalProvider() {
+
       public IContentProposal[] getProposals(String contents, int position) {
         final String start = contents.length() > position ? contents.substring(0, position) : contents;
         ArrayList<IContentProposal> proposals = new ArrayList<IContentProposal>();
@@ -113,22 +116,22 @@ public class ProposalUtil {
 
     ContentAssistCommandAdapter adapter = new ContentAssistCommandAdapter( //
         control, contentAdapter, proposalProvider, //
-        ContentAssistCommandAdapter.CONTENT_PROPOSAL_COMMAND, null);
+        IWorkbenchCommandConstants.EDIT_CONTENT_ASSIST, new char[] {'.'});
     // ContentProposalAdapter adapter = new ContentProposalAdapter(control, contentAdapter, //
     //     proposalProvider, KeyStroke.getInstance(SWT.MOD1, ' '), null);
     adapter.setProposalAcceptanceStyle(ContentProposalAdapter.PROPOSAL_REPLACE);
     adapter.setPopupSize(new Point(250, 120));
-    adapter.setPopupSize(new Point(250, 120));
+    adapter.setFilterStyle(ContentProposalAdapter.FILTER_NONE);
+    adapter.setPropagateKeys(true);
   }
 
   public static void addClassifierProposal(final IProject project, final Text groupIdText, final Text artifactIdText,
       final Text versionText, final Text classifierText, final Packaging packaging) {
     addCompletionProposal(classifierText, new Searcher() {
       public Collection<String> search() throws CoreException {
-        return getSearchEngine(project).findClassifiers(
-            escapeQuerySpecialCharacters(groupIdText.getText()), //
-            escapeQuerySpecialCharacters(artifactIdText.getText()),
-            escapeQuerySpecialCharacters(versionText.getText()), "", packaging);
+        return getSearchEngine(project).findClassifiers(escapeQuerySpecialCharacters(groupIdText.getText()), //
+            escapeQuerySpecialCharacters(artifactIdText.getText()), escapeQuerySpecialCharacters(versionText.getText()),
+            "", packaging);
       }
     });
   }
@@ -165,8 +168,8 @@ public class ProposalUtil {
     addCompletionProposal(artifactIdText, new Searcher() {
       public Collection<String> search() throws CoreException {
         // TODO handle artifact info
-        return getSearchEngine(project).findArtifactIds(escapeQuerySpecialCharacters(groupIdText.getText()), "",
-            packaging, null);
+        return getSearchEngine(project).findArtifactIds(escapeQuerySpecialCharacters(groupIdText.getText()),
+            escapeQuerySpecialCharacters(artifactIdText.getText()), packaging, null);
       }
     });
   }
