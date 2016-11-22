@@ -53,4 +53,18 @@
          </enablement>
       </objectContribution>
    </extension>
+   <extension
+         point="org.eclipse.mylyn.commons.notifications.ui.notifications">
+         <event
+		    categoryId="org.eclipse.m2e.ui.notifications.category"
+		    id="org.eclipse.m2e.editor.notifications.default.xml.editor"
+		    label="%m2.notifications.default.xml.editor.label"
+		    icon="icons/m2.gif"
+		    selected="true">
+		    <description>%m2.notifications.default.xml.editor.description</description>
+		    <defaultHandler
+		      sinkId="org.eclipse.mylyn.commons.notifications.sink.Popup">
+		    </defaultHandler>
+		  </event>
+   </extension>
 </plugin>

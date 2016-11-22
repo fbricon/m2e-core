@@ -166,4 +166,9 @@ public interface MavenPreferenceConstants {
    **/
   public static final String P_AUTO_UPDATE_CONFIGURATION = PREFIX + "autoUpdateProjects"; //$NON-NLS-1$
 
+  /**
+   * @since 1.8
+   **/
+  public static final String P_DISPLAY_XML_EDITOR_NOTIFICATION = PREFIX + "displayXmlEditorNotification"; //$NON-NLS-1$
+
 }

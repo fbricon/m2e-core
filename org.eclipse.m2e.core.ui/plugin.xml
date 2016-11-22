@@ -655,4 +655,12 @@
         </description>
     </transfer>         
    </extension>
+   <extension
+         point="org.eclipse.mylyn.commons.notifications.ui.notifications">
+      <category
+            id="org.eclipse.m2e.ui.notifications.category"
+            icon="icons/m2.gif"
+            label="%m2.notifications.category">
+      	 </category>
+   </extension>
 </plugin>

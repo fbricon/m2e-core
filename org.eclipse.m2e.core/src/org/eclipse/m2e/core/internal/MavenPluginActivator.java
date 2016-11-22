@@ -61,6 +61,8 @@ import org.eclipse.m2e.core.embedder.MavenModelManager;
 import org.eclipse.m2e.core.internal.archetype.ArchetypeCatalogFactory;
 import org.eclipse.m2e.core.internal.archetype.ArchetypeManager;
 import org.eclipse.m2e.core.internal.embedder.MavenImpl;
+import org.eclipse.m2e.core.internal.events.IMavenEventManager;
+import org.eclipse.m2e.core.internal.events.MavenEventManagerImpl;
 import org.eclipse.m2e.core.internal.index.filter.ArtifactFilterManager;
 import org.eclipse.m2e.core.internal.index.nexus.IndexesExtensionReader;
 import org.eclipse.m2e.core.internal.index.nexus.IndexingTransferListener;
@@ -141,6 +143,8 @@ public class MavenPluginActivator extends Plugin {
 
   private IProjectConversionManager projectConversionManager;
 
+  private IMavenEventManager eventManager;
+
   public MavenPluginActivator() {
     plugin = this;
 
@@ -168,6 +172,8 @@ public class MavenPluginActivator extends Plugin {
     URLConnectionCaches.disable();
 
     this.bundleContext = context;
+
+    this.eventManager = new MavenEventManagerImpl();
 
     try {
       this.qualifiedVersion = (String) getBundle().getHeaders().get(Constants.BUNDLE_VERSION);
@@ -292,6 +298,8 @@ public class MavenPluginActivator extends Plugin {
    */
   public void stop(BundleContext context) throws Exception {
     super.stop(context);
+
+    eventManager = null;
 
     this.managerImpl.writeWorkspaceState();
     context.removeBundleListener(bundleListener);
@@ -473,5 +481,12 @@ public class MavenPluginActivator extends Plugin {
    */
   public IProjectConversionManager getProjectConversionManager() {
     return projectConversionManager;
+  }
+
+  /**
+   * @return
+   */
+  public IMavenEventManager getMavenEventManager() {
+    return eventManager;
   }
 }

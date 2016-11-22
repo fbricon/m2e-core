@@ -68,6 +68,7 @@ public class MavenEditorImages {
 
   public static final Image IMG_SCOPE = createImage("scope_obj.gif"); //$NON-NLS-1$
 
+  public static final Image IMG_M2E = createImage("m2.gif"); //$NON-NLS-1$
   // image descriptors
 
   public static final ImageDescriptor REFRESH = create("refresh.gif"); //$NON-NLS-1$

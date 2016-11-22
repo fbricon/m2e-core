@@ -72,6 +72,8 @@ import org.eclipse.m2e.core.embedder.ArtifactKey;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.embedder.IMavenConfiguration;
 import org.eclipse.m2e.core.internal.IMavenConstants;
+import org.eclipse.m2e.core.internal.events.DefaultMavenEvent;
+import org.eclipse.m2e.core.internal.events.IMavenEventManager;
 import org.eclipse.m2e.core.internal.index.IndexManager;
 import org.eclipse.m2e.core.internal.index.IndexedArtifactFile;
 import org.eclipse.m2e.core.internal.lifecyclemapping.LifecycleMappingFactory;
@@ -132,13 +134,18 @@ public class BuildPathManager implements IMavenProjectChangedListener, IResource
 
   private final DefaultClasspathManagerDelegate defaultDelegate;
 
+  private IMavenEventManager eventManager;
+
+  private boolean canFireSourcesDownloadEvent = true;
+
   public BuildPathManager(IMavenProjectRegistry projectManager, IndexManager indexManager, BundleContext bundleContext,
-      File stateLocationDir) {
+      File stateLocationDir, IMavenEventManager eventManager) {
     this.projectManager = projectManager;
     this.indexManager = indexManager;
     this.mavenConfiguration = MavenPlugin.getMavenConfiguration();
     this.bundleContext = bundleContext;
     this.stateLocationDir = stateLocationDir;
+    this.eventManager = eventManager;
     this.maven = MavenPlugin.getMaven();
     this.downloadSourcesJob = new DownloadSourcesJob(this);
     downloadSourcesJob.setPriority(SOURCE_DOWNLOAD_PRIORITY);
@@ -314,16 +321,26 @@ public class BuildPathManager implements IMavenProjectChangedListener, IResource
 
         ArtifactKey aKey = desc.getArtifactKey();
         if(aKey != null) { // maybe we should try to find artifactKey little harder here?
-          boolean downloadSources = desc.getSourceAttachmentPath() == null && srcPath == null
-              && mavenConfiguration.isDownloadSources();
+          boolean hasNoSources = desc.getSourceAttachmentPath() == null && srcPath == null;
+          boolean isDownloadSourcesEnabled = mavenConfiguration.isDownloadSources();
+          boolean downloadSources = hasNoSources && isDownloadSourcesEnabled;
           boolean downloadJavaDoc = desc.getJavadocUrl() == null && javaDocUrl == null
               && mavenConfiguration.isDownloadJavaDoc();
+
+          if(hasNoSources && !isDownloadSourcesEnabled && canFireDisabledSourceDownloadEvent()) {
+            eventManager.fire(new DefaultMavenEvent("disabled.sources.download"));
+            canFireSourcesDownloadEvent = false;
+          }
 
           scheduleDownload(facade.getProject(), facade.getMavenProject(monitor), aKey, downloadSources,
               downloadJavaDoc);
         }
       }
     }
+  }
+
+  private boolean canFireDisabledSourceDownloadEvent() {
+    return canFireSourcesDownloadEvent;
   }
 
   private boolean isUnavailable(ArtifactKey a, List<ArtifactRepository> repositories) throws CoreException {

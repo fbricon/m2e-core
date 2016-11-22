@@ -311,5 +311,19 @@
                label="%action.javadoc4.label"
                enablesFor="1"/>
       </objectContribution>
-   </extension>   
+   </extension>
+   <extension
+         point="org.eclipse.mylyn.commons.notifications.ui.notifications">
+         <event
+		    categoryId="org.eclipse.m2e.ui.notifications.category"
+		    id="org.eclipse.m2e.jdt.ui.notifications.download.sources"
+		    label="%m2.notifications.download.sources.label"
+		    icon="icons/m2.gif"
+		    selected="true">
+		    <description>%m2.notifications.download.sources.description</description>
+		    <defaultHandler
+		      sinkId="org.eclipse.mylyn.commons.notifications.sink.Popup">
+		    </defaultHandler>
+		  </event>
+   </extension>
 </fragment>

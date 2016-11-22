@@ -41,6 +41,7 @@ import org.eclipse.m2e.core.embedder.AbstractMavenConfigurationChangeListener;
 import org.eclipse.m2e.core.embedder.IMavenConfiguration;
 import org.eclipse.m2e.core.embedder.MavenConfigurationChangeEvent;
 import org.eclipse.m2e.core.internal.MavenPluginActivator;
+import org.eclipse.m2e.core.internal.events.IMavenEventManager;
 import org.eclipse.m2e.core.internal.index.IndexManager;
 import org.eclipse.m2e.core.internal.project.registry.MavenProjectManager;
 import org.eclipse.m2e.jdt.internal.BuildPathManager;
@@ -96,7 +97,8 @@ public class MavenJdtPlugin extends Plugin {
 
     File stateLocationDir = getStateLocation().toFile();
 
-    this.buildpathManager = new BuildPathManager(projectManager, indexManager, bundleContext, stateLocationDir);
+    this.buildpathManager = new BuildPathManager(projectManager, indexManager, bundleContext, stateLocationDir,
+        IMavenEventManager.getDefault());
     workspace.addResourceChangeListener(buildpathManager, IResourceChangeEvent.PRE_DELETE);
 
     projectManager.addMavenProjectChangedListener(this.buildpathManager);

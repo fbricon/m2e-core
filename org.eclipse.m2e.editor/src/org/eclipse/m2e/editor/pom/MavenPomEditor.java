@@ -11,10 +11,15 @@
 
 package org.eclipse.m2e.editor.pom;
 
+import static org.eclipse.m2e.editor.internal.EditorPreferencesUtil.isDisplayXmlEditorNotification;
+import static org.eclipse.m2e.editor.internal.EditorPreferencesUtil.isOpenXmlEditorByDefault;
+import static org.eclipse.m2e.editor.internal.EditorPreferencesUtil.setDisplayXmlEditorNotification;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +58,7 @@ import org.eclipse.jface.text.TextEvent;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.IVerticalRuler;
+import org.eclipse.mylyn.commons.notifications.ui.NotificationsUi;
 import org.eclipse.search.ui.text.ISearchEditorAccess;
 import org.eclipse.search.ui.text.Match;
 import org.eclipse.swt.widgets.Composite;
@@ -96,14 +102,13 @@ import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.ArtifactKey;
 import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.m2e.core.internal.MavenPluginActivator;
-import org.eclipse.m2e.core.internal.preferences.MavenPreferenceConstants;
 import org.eclipse.m2e.core.project.IMavenProjectChangedListener;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
-import org.eclipse.m2e.core.ui.internal.M2EUIPluginActivator;
 import org.eclipse.m2e.core.ui.internal.actions.OpenPomAction.MavenStorageEditorInput;
 import org.eclipse.m2e.core.ui.internal.actions.SelectionUtil;
 import org.eclipse.m2e.editor.MavenEditorPlugin;
+import org.eclipse.m2e.editor.internal.DefaultPomEditorNotification;
 import org.eclipse.m2e.editor.internal.Messages;
 
 
@@ -271,8 +276,8 @@ public class MavenPomEditor extends FormEditor implements IResourceChangeListene
           Display.getDefault().asyncExec(new Runnable() {
             public void run() {
 /* MNGECLIPSE-1789: commented this out since forced model reload caused the XML editor to go crazy;
-                    the model is already updated at this point so reloading from file is unnecessary;
-                    externally originated file updates are checked in handleActivation() */
+      the model is already updated at this point so reloading from file is unnecessary;
+      externally originated file updates are checked in handleActivation() */
 //            try {
 //              structuredModel.reload(pomFile.getContents());
               reload();
@@ -291,9 +296,10 @@ public class MavenPomEditor extends FormEditor implements IResourceChangeListene
         try {
           IMarker[] markers = pomFile.findMarkers(IMavenConstants.MARKER_ID, true, IResource.DEPTH_ZERO);
           final String msg = markers != null && markers.length > 0 //
-          ? markers[0].getAttribute(IMarker.MESSAGE, "Unknown error") : null;
-          final int severity = markers != null && markers.length > 0 ? (markers[0].getAttribute(IMarker.SEVERITY,
-              IMarker.SEVERITY_ERROR) == IMarker.SEVERITY_WARNING ? IMessageProvider.WARNING : IMessageProvider.ERROR)
+              ? markers[0].getAttribute(IMarker.MESSAGE, "Unknown error") : null;
+          final int severity = markers != null && markers.length > 0
+              ? (markers[0].getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR) == IMarker.SEVERITY_WARNING
+                  ? IMessageProvider.WARNING : IMessageProvider.ERROR)
               : IMessageProvider.NONE;
 
           Display.getDefault().asyncExec(new Runnable() {
@@ -360,8 +366,7 @@ public class MavenPomEditor extends FormEditor implements IResourceChangeListene
   }
 
   protected void selectActivePage() {
-    boolean showXML = M2EUIPluginActivator.getDefault().getPreferenceStore()
-        .getBoolean(MavenPreferenceConstants.P_DEFAULT_POM_EDITOR_PAGE);
+    boolean showXML = isOpenXmlEditorByDefault();
     if(showXML) {
       setActivePage(null);
     }
@@ -387,6 +392,18 @@ public class MavenPomEditor extends FormEditor implements IResourceChangeListene
       IEditorPart activeEditor = getActivePageInstance();
       ((MultiPageEditorActionBarContributor) contributor).setActivePage(activeEditor);
     }
+
+    if(newPageIndex == sourcePageIndex && shouldDisplayFirstXmlEditorNotification()) {
+      NotificationsUi.getService().notify(Collections.singletonList(new DefaultPomEditorNotification()));
+      setDisplayXmlEditorNotification(false);
+    }
+  }
+
+  /**
+   * @return
+   */
+  private boolean shouldDisplayFirstXmlEditorNotification() {
+    return !isOpenXmlEditorByDefault() && isDisplayXmlEditorNotification();
   }
 
   private void addEditorPageExtensions() {
@@ -558,7 +575,8 @@ public class MavenPomEditor extends FormEditor implements IResourceChangeListene
      * we override the creation of StructuredTextViewer to have our own subclass created that drags along an instance of
      * resolved MavenProject via implementing IMavenProjectCache
      */
-    protected StructuredTextViewer createStructedTextViewer(Composite parent, IVerticalRuler verticalRuler, int styles) {
+    protected StructuredTextViewer createStructedTextViewer(Composite parent, IVerticalRuler verticalRuler,
+        int styles) {
       return new MavenStructuredTextViewer(parent, verticalRuler, getOverviewRuler(), isOverviewRulerVisible(), styles);
     }
 

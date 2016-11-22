@@ -61,5 +61,7 @@ public class MavenPreferenceInitializer extends AbstractPreferenceInitializer {
 
     //Setting to false until bug #462898 is fixed
     store.putBoolean(MavenPreferenceConstants.P_AUTO_UPDATE_CONFIGURATION, false);
+
+    store.putBoolean(MavenPreferenceConstants.P_DISPLAY_XML_EDITOR_NOTIFICATION, true);
   }
 }
